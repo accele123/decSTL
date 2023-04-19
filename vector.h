@@ -1,5 +1,6 @@
 // released on 2023/4/19 WED
 // author: accele123
+// vector的简单实现
 
 #ifndef _NEW_VECTOR_
 #define _NEW_VECTOR_
