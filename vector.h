@@ -1,6 +1,7 @@
-// released on 2023/4/19 WED
+// version 1 released on 2023/4/19 WED
+// still being modified
 // author: accele123
-// vector的简单实现
+// vector 的简单实现
 
 #ifndef _NEW_VECTOR_
 #define _NEW_VECTOR_
@@ -101,9 +102,11 @@ public:
     size_t max_size() const { return (size_t)(-1); }
     iterator begin() const { return _begin; }
     iterator end() const { return _end; }
+    refer back() const { return *(_end - 1); }
+    refer at(const size_t n) const { return *(_begin + n); }
     con_iterator cbegin() const { return _begin; }
     con_iterator cend() const { return _end; }
-    refer operator[](size_t n) const { return *(_begin + n); }
+    refer operator[](const size_t n) const { return *(_begin + n); }
     bool empty() const { return _begin == _end; }
     void push_back(const T &val)
     {
