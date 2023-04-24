@@ -1,5 +1,4 @@
-// version 1 released on 2023/4/19 WED
-// still being modified
+// modified on 2023/4/23 MON
 // author: accele123
 // vector 的简单实现
 
@@ -7,14 +6,67 @@
 #define _NEW_VECTOR_
 
 #include <iostream>
-#include "alloc1.h"
+#include "alloc.h"
 #include <cstddef>
 #include <cstdlib>
+
+/// @brief vector的反向迭代器
+template <class T>
+class vec_reiterator
+{
+private:
+    T *ptr;
+
+public:
+    vec_reiterator(): ptr(0) {}
+    vec_reiterator(T *p) : ptr(p) {}
+    vec_reiterator(const vec_reiterator &p) : ptr(p.ptr) {}
+    vec_reiterator operator=(const vec_reiterator &p)
+    {
+        if (p.ptr == ptr)
+            return *this;
+        ptr = p.ptr;
+        return *this;
+    }
+    bool operator==(const vec_reiterator &p) const { return ptr == p.ptr; }
+    bool operator!=(const vec_reiterator &p) const { return ptr != p.ptr; }
+    T operator*() { return *ptr; }
+    T *operator->() { return &(operator*()); }
+    void operator+=(const size_t n) { ptr -= n; }
+    void operator-=(const size_t n) { ptr += n; }
+    vec_reiterator operator+(const size_t n) { return vec_reiterator(ptr - n); }
+    vec_reiterator operator-(const size_t n) { return vec_reiterator(ptr + n); }
+    ptrdiff_t operator-(const vec_reiterator &p) { return (ptrdiff_t)(p.ptr - ptr); }
+    vec_reiterator operator++()
+    {
+        --ptr;
+        return *this;
+    }
+    vec_reiterator operator--()
+    {
+        ++ptr;
+        return *this;
+    }
+    vec_reiterator operator++(int)
+    {
+        vec_reiterator temp = *this;
+        --ptr;
+        return temp;
+    }
+    vec_reiterator operator--(int)
+    {
+        vec_reiterator temp = *this;
+        ++ptr;
+        return temp;
+    }
+};
+
+/******************************/
 
 /// @brief vector实现
 /// @tparam T 类型
 /// @tparam Alloc 分配器类型
-template <class T, class Alloc = alloc1<T>>
+template <class T, class Alloc = sim_alloc<T>>
 class vector
 {
 public:
@@ -27,6 +79,7 @@ public:
     using con_refer = const T &;
     using iterator = pointer;
     using con_iterator = const T *;
+    using reiterator = vec_reiterator<T>;
     /******************************/
     // 函数实现
     vector() : _begin(nullptr), _end(nullptr), _end_of_mem(nullptr) {}
@@ -106,6 +159,8 @@ public:
     refer at(const size_t n) const { return *(_begin + n); }
     con_iterator cbegin() const { return _begin; }
     con_iterator cend() const { return _end; }
+    reiterator rbegin() const { return reiterator(_end - 1); }
+    reiterator rend() const { return reiterator(_begin - 1); }
     refer operator[](const size_t n) const { return *(_begin + n); }
     bool empty() const { return _begin == _end; }
     void push_back(const T &val)
@@ -161,17 +216,17 @@ private:
     /// @brief 分配内存
     /// @param n 分配元素数目
     /// @return 分配内存的地址
-    pointer vec_alloc(const size_t n) { return Alloc().allocate(n); }
+    pointer vec_alloc(const size_t n) { return Alloc::allocate(n); }
     /// @brief 释放内存
     /// @param p 释放元素首地址
-    void vec_dealloc(pointer p) { Alloc().deallocate(p); }
+    void vec_dealloc(pointer p) { Alloc::deallocate(p); }
     /// @brief 构造对象
     /// @param p 构造目标的地址
     /// @param val 构造值
-    void construct(pointer p, const T &val) { Alloc().construct(p, val); }
+    void construct(pointer p, const T &val) { Alloc::construct(p, val); }
     /// @brief 析构对象
     /// @param p 析构目标的地址
-    void destroy(pointer p) { Alloc().destroy(p); }
+    void destroy(pointer p) { Alloc::destroy(p); }
     /******************************/
 };
 
