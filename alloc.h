@@ -1,4 +1,4 @@
-// modified on 2023/4/21 FRI
+// modified on 2023/4/24 MON
 // author: accele123
 // 复杂分配器的实现
 
@@ -40,16 +40,25 @@ template <class T, class Alloc = alloc>
 class sim_alloc
 {
 public:
-    using type = T;
+    using value_type = T;
     using pointer = T *;
-    using refer = T &;
+    using reference = T &;
+    using const_pointer = const T *;
+    using const_reference = const T &;
     static pointer allocate(const size_t n) { return (pointer)Alloc::allocate(n * sizeof(T)); }
-    static pointer allocate() { return Alloc::allocate(sizeof(T)); }
+    static pointer allocate() { return (pointer)Alloc::allocate(sizeof(T)); }
     static void deallocate(pointer p) { Alloc::deallocate(p, 1); }
-    static void deallocate(pointer p, const size_t n) { Alloc::deallocate(p, n); }
+    static void deallocate(pointer p, const size_t n) { Alloc::deallocate(p, n * sizeof(T)); }
     size_t max_size() const { return (size_t)(-1); }
+    template <class U>
+    struct rebind
+    {
+        using other = sim_alloc<U>;
+    };
     static void construct(pointer p, const T &val) { _construct(p, val); }
     static void destroy(pointer p) { _destroy(p); }
+    static pointer address(reference val) { return (pointer)(&val); }
+    static const_pointer const_address(const_reference val) { return (const_pointer)(&val); }
 };
 /******************************/
 
@@ -77,7 +86,7 @@ public:
             error_allocate(n);
         return ret;
     }
-    static void deallocate(void *p) { free(p); }
+    static void deallocate(void *p, const size_t n = 1) { free(p); }
     static void *error_allocate(size_t n)
     {
         void (*fun)() = alloc_error_handler;
@@ -126,7 +135,10 @@ public:
         list = free_list + index(n);
         ret = *list;
         if (ret == 0)
-            return refill(up_to_minsize(n));
+        {
+            void *r = refill(up_to_minsize(n));
+            return r;
+        }
         *list = ret->next;
         return ret;
     }
@@ -149,7 +161,6 @@ public:
         ret = chunk;
         if (nobj == 1)
             return ret;
-        ret = chunk;
         list = free_list + index(n);
         *list = (obj *)((char *)chunk + n);
         obj *next_obj = *list;
@@ -208,8 +219,8 @@ public:
                     }
                 }
             }
-            list_end = 0;
-            list_begin = (char *)malloc_alloc::allocate(need);
+            if (list_begin == 0)
+                list_begin = (char *)malloc_alloc::allocate(need);
             heap_size = need;
             list_end = list_begin + need;
             return chunk_alloc(n, nobj);
@@ -224,8 +235,8 @@ private:
     static char *list_end;
     /// @brief 动态调节内存池的大小
     static size_t heap_size;
-    static size_t index(const size_t n) { return (n + ALLOC_MIN_SIZE - 1) / (ALLOC_MIN_SIZE) - 1; }
-    static size_t up_to_minsize(const size_t n) { return (n + ALLOC_MIN_SIZE - 1) & (~ALLOC_MIN_SIZE - 1); }
+    static size_t index(const size_t n) { return ((n + ALLOC_MIN_SIZE - 1) / (ALLOC_MIN_SIZE)) - 1; }
+    static size_t up_to_minsize(const size_t n) { return (n + ALLOC_MIN_SIZE - 1) & (~(ALLOC_MIN_SIZE - 1)); }
 };
 alloc_lev_sec::obj *alloc_lev_sec::free_list[ALLOC_LEN] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 char *alloc_lev_sec::list_begin = 0;
