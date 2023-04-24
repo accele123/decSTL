@@ -224,7 +224,7 @@ private:
     static char *list_end;
     /// @brief 动态调节内存池的大小
     static size_t heap_size;
-    static size_t index(const size_t n) { return (n + ALLOC_MIN_SIZE - 1) / (ALLOC_MIN_SIZE - 1); }
+    static size_t index(const size_t n) { return (n + ALLOC_MIN_SIZE - 1) / (ALLOC_MIN_SIZE) - 1; }
     static size_t up_to_minsize(const size_t n) { return (n + ALLOC_MIN_SIZE - 1) & (~ALLOC_MIN_SIZE - 1); }
 };
 alloc_lev_sec::obj *alloc_lev_sec::free_list[ALLOC_LEN] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
