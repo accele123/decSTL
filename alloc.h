@@ -47,7 +47,7 @@ public:
     using const_reference = const T &;
     static pointer allocate(const size_t n) { return (pointer)Alloc::allocate(n * sizeof(T)); }
     static pointer allocate() { return (pointer)Alloc::allocate(sizeof(T)); }
-    static void deallocate(pointer p) { Alloc::deallocate(p, 1); }
+    static void deallocate(pointer p) { Alloc::deallocate(p, sizeof(T)); }
     static void deallocate(pointer p, const size_t n) { Alloc::deallocate(p, n * sizeof(T)); }
     size_t max_size() const { return (size_t)(-1); }
     template <class U>
